@@ -1,6 +1,5 @@
 #include "../include/Mutate.h"
 
-#include "llvm/ADT/Statistic.h"
 #include "llvm/IR/IRBuilder.h"
 // #include "llvm/IR/Instructions.h"
 #include "llvm/IR/InstrTypes.h"
@@ -21,13 +20,8 @@ bool Mutate::runOnBasicBlock(BasicBlock &BB)
 {
     bool Changed = false;
 
-    // Loop over all instructions in the block. Replacing instructions requires
-    // iterators, hence a for-range loop wouldn't be suitable.
-    int i = 0;
     for (auto Inst = BB.begin(), IE = BB.end(); Inst != IE; ++Inst)
     {
-        if (i > 0)
-            return 0;
         // Skip non-binary (e.g. unary or compare) instruction.
         auto *BinOp = dyn_cast<llvm::StoreInst>(Inst);
         if (!BinOp)
@@ -59,7 +53,6 @@ bool Mutate::runOnBasicBlock(BasicBlock &BB)
         // ReplaceInstWithInst(BB.getInstList(), Inst, strInst);
         // BB.getInstList().insert(Inst, strInst);
 
-        i++;
         Changed = true;
     }
     return Changed;
