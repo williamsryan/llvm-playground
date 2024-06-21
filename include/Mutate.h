@@ -11,22 +11,12 @@ struct Mutate : public llvm::PassInfoMixin<Mutate>
     llvm::PreservedAnalyses run(llvm::Function &F,
                                 llvm::FunctionAnalysisManager &);
 
-    static bool runOnBasicBlock(llvm::BasicBlock &B);
-};
+    bool runOnBasicBlock(llvm::BasicBlock &B);
 
-struct LegacyMutate : public llvm::FunctionPass
-{
-    // The address of this static is used to uniquely identify this pass in the
-    // pass registry. The PassManager relies on this address to find instance of
-    // analyses passes and build dependencies on demand.
-    // The value does not matter.
-    static char ID;
-
-    LegacyMutate() : FunctionPass(ID) {}
-
-    bool runOnFunction(llvm::Function &F) override;
-
-    Mutate Impl;
+    // Without isRequired returning true, this pass will be skipped for functions
+    // decorated with the optnone LLVM attribute. Note that clang -O0 decorates
+    // all functions with optnone.
+    static bool isRequired() { return true; }
 };
 
 #endif // MUTATE_H

@@ -1,4 +1,4 @@
-#include "../include/Mutate.h"
+#include "Mutate.h"
 
 #include "llvm/IR/IRBuilder.h"
 // #include "llvm/IR/Instructions.h"
@@ -6,8 +6,6 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
-
-#include <random>
 
 using namespace llvm;
 
@@ -32,11 +30,11 @@ bool Mutate::runOnBasicBlock(BasicBlock &BB)
         // Skip instructions other than integer sub.
         unsigned Opcode = BinOp->getOpcode();
         StringRef Name = Inst->getOpcodeName();
-        // errs() << "Opcode Name:\t" << Name << "\n";
+        errs() << "[+] Opcode Name:\t" << Name << "\n";
 
         // Skip instructions other than add.
-        if (BinOp->getOpcode() != Instruction::Store)
-            continue;
+        // if (BinOp->getOpcode() != Instruction::Store)
+        //     continue;
 
         IRBuilder<> Builder(BinOp);
 
@@ -49,9 +47,12 @@ bool Mutate::runOnBasicBlock(BasicBlock &BB)
 
         llvm::ConstantInt *nonce = llvm::ConstantInt::get(BB.getContext(), llvm::APInt(32, StringRef("1337"), 10));
         // auto *NewInst = new llvm::StoreInst(nonce, BinOp);
-        StoreInst *strInst = Builder.CreateStore(nonce, BinOp->getNextNode());
+        // StoreInst *strInst = Builder.CreateStore(nonce, BinOp->getNextNode());
+        AllocaInst *allocaInst = Builder.CreateAlloca(Type::getInt32Ty(BB.getContext()), 0, "myIntVar");
         // ReplaceInstWithInst(BB.getInstList(), Inst, strInst);
         // BB.getInstList().insert(Inst, strInst);
+
+        Builder.CreateStore(nonce, allocaInst);
 
         Changed = true;
     }
@@ -70,17 +71,6 @@ PreservedAnalyses Mutate::run(llvm::Function &F,
     }
     return (Changed ? llvm::PreservedAnalyses::none()
                     : llvm::PreservedAnalyses::all());
-}
-
-bool LegacyMutate::runOnFunction(llvm::Function &F)
-{
-    bool Changed = false;
-
-    for (auto &BB : F)
-    {
-        Changed |= Impl.runOnBasicBlock(BB);
-    }
-    return Changed;
 }
 
 //-----------------------------------------------------------------------------
@@ -110,15 +100,3 @@ llvmGetPassPluginInfo()
 {
     return getMutatePluginInfo();
 }
-
-//-----------------------------------------------------------------------------
-// Legacy PM Registration
-//-----------------------------------------------------------------------------
-char LegacyMutate::ID = 0;
-
-// Register the pass - required for (among others) opt
-static RegisterPass<LegacyMutate> X("legacy-mutate",
-                                    "IR mutation testing",
-                                    true, // doesn't modify the CFG => true
-                                    false // not a pure analysis pass => false
-);
