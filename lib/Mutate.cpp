@@ -45,7 +45,7 @@ bool Mutate::runOnBasicBlock(BasicBlock &BB)
         assert(I);
         // assert(terminator);
 
-        llvm::ConstantInt *nonce = llvm::ConstantInt::get(BB.getContext(), llvm::APInt(32, StringRef("1337"), 10));
+        ConstantInt *nonce = llvm::ConstantInt::get(BB.getContext(), llvm::APInt(32, StringRef("1337"), 10));
         // auto *NewInst = new llvm::StoreInst(nonce, BinOp);
         // StoreInst *strInst = Builder.CreateStore(nonce, BinOp->getNextNode());
         AllocaInst *allocaInst = Builder.CreateAlloca(Type::getInt32Ty(BB.getContext()), 0, "myIntVar");
